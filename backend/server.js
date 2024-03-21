@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const jwt = require('jsonwebtoken');
 const { expressjwt } = require("express-jwt");
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -15,7 +14,6 @@ const User = require('./models/user_schema');
 const Budget = require('./models/budget_schema');
 
 app.use(cors());
-app.use(express.static('client'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -31,10 +29,10 @@ const jwtMW = expressjwt({
     algorithms: ['HS256']
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client', 'index.html'));
-});
+// Serve React application static files
+app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
 
+// API Routes
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -69,6 +67,11 @@ app.get('/api/dashboard', jwtMW, (req, res) => {
         success: true,
         myContent: 'Secret content that only logged in people can see.'
     });
+});
+
+// Serve index.html for all routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
 
 app.listen(PORT, () => {
